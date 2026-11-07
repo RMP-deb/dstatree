@@ -1,0 +1,6 @@
+export(DStatFilter)
+exportClasses(DStatFilter)
+import(methods)
+importFrom(ape, read.tree, root, compute.brlen, mrca, node.depth.edgelength)
+importFrom(stats, pnorm, p.adjust)
+importFrom(utils, read.table, write.csv, head)
