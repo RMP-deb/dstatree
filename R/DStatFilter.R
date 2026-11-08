@@ -131,36 +131,95 @@ DStatFilter <- setRefClass("DStatFilter",
       invisible(.self)
     },
 
-    # Look at the significant rows where H1 and H2 are a true sister pair (a cherry)
-    sisterAdmixture = function(z_threshold = 3) {
+     # Look at significant rows and which split of the tree H1 and H2 sit on
+    #   level = "cherry": only true sister pairs (clades of exactly 2 species)
+    #   level = "clade":  any tree-congruent pair, annotated with its clade
+    #   summary = TRUE:   one row per clade + H3 instead of one row per trio
+    sisterAdmixture = function(z_threshold = 3, level = c("cherry", "clade"),
+                               summary = FALSE) {
+      level <- match.arg(level)
       if (nrow(result) == 0) stop("Run filter() first")
-
-      # find the cherries: nodes with exactly 2 children, both of them tips
-      ntip <- length(tree$tip.label)
-      e <- tree$edge
-      tip_edges <- e[e[, 2] <= ntip, ]               # edges that end at a tip
-      tips_per_node <- table(tip_edges[, 1])         # tip children per parent node
-      all_per_node  <- table(e[, 1])                 # all children per parent node
-      nodes <- as.integer(names(tips_per_node)[tips_per_node == 2])
-      nodes <- nodes[all_per_node[as.character(nodes)] == 2]
-
-      # get the two tip names for each cherry
-      pairs <- sapply(nodes, function(n) {
-        tree$tip.label[tip_edges[tip_edges[, 1] == n, 2]]
-      })
-      cherry_keys <- pairKey(pairs[1, ], pairs[2, ])
-
-      # keep rows where H1 + H2 is a cherry and the signal is significant
       r <- result
-      is_sister <- pairKey(r$H1, r$H2) %in% cherry_keys
-      r <- r[is_sister & r$abs_Z > z_threshold, ]
+
+      ntip   <- length(tree$tip.label)
+      tip_id <- seq_len(ntip)
+      names(tip_id) <- tree$tip.label
+      below  <- ape::prop.part(tree)   # species below each internal node
+
+      # species names below any node (a tip is just itself)
+      members <- function(n) {
+        if (n <= ntip) tree$tip.label[n] else tree$tip.label[below[[n - ntip]]]
+      }
+
+      # the node where H1 and H2 meet = the split the pair sits on
+      M    <- ape::mrca(tree)
+      node <- M[cbind(r$H1, r$H2)]
+      key  <- as.character(node)
+
+      # for each split: its species, and the species under each of its branches
+      split_nodes <- unique(key)
+      clade_txt <- character(0)
+      side_map  <- list()   # which branch each tip sits under
+      side_txt  <- list()   # species list for each branch
+      for (k in split_nodes) {
+        n    <- as.integer(k)
+        kids <- tree$edge[tree$edge[, 1] == n, 2]
+        m    <- rep(NA_integer_, ntip)
+        txt  <- character(length(kids))
+        for (i in seq_along(kids)) {
+          sp <- members(kids[i])
+          m[tip_id[sp]] <- i
+          txt[i] <- paste(sp, collapse = ",")
+        }
+        clade_txt[k]  <- paste(members(n), collapse = ",")
+        side_map[[k]] <- m
+        side_txt[[k]] <- txt
+      }
+      r$clade      <- unname(clade_txt[key])
+      r$clade_size <- vapply(key, function(k) sum(!is.na(side_map[[k]])), numeric(1))
+      r$clade_size <- unname(r$clade_size)
 
       # positive Z = H3 shares more with H2, negative Z = more with H1
       r$recipient <- ifelse(r$Z > 0, r$H2, r$H1)
 
-      rownames(r) <- NULL
-      return(r)
+      # which branch of the split the recipient is on
+      r$toward_side <- NA_character_
+      for (k in split_nodes) {
+        i <- key == k
+        r$toward_side[i] <- side_txt[[k]][side_map[[k]][tip_id[r$recipient[i]]]]
+      }
+
+      if (level == "cherry") r <- r[r$clade_size == 2, ]
+      r$hit <- r$abs_Z > z_threshold
+
+      # one row per significant trio
+      if (!summary) {
+        out <- r[r$hit, ]
+        out$hit <- NULL
+        out <- out[order(-out$abs_Z), ]
+        rownames(out) <- NULL
+        return(out)
+      }
+
+      # one row per clade + H3: how many pairs tested, how many significant,
+      # and whether they all point at the same branch
+      groups <- split(seq_len(nrow(r)), paste(r$clade, r$H3, sep = " || "))
+      out <- do.call(rbind, lapply(groups, function(i) {
+        g <- r[i, ]
+        h <- g[g$hit, ]
+        sides <- unique(h$toward_side)
+        toward <- if (length(sides) == 0) NA_character_
+                  else if (length(sides) == 1) sides
+                  else "mixed"
+        data.frame(clade = g$clade[1], H3 = g$H3[1], n_tests = nrow(g),
+                   n_significant = nrow(h), toward_side = toward,
+                   max_abs_Z = max(g$abs_Z), stringsAsFactors = FALSE)
+      }))
+      out <- out[order(-out$n_significant, -out$max_abs_Z), ]
+      rownames(out) <- NULL
+      return(out)
     },
+
 
     # Write the filtered table to a file
     saveResult = function(file) {

@@ -31,9 +31,15 @@ significant signals involving true sister pairs.
     \code{abs_Z}, \code{p}, \code{p_adj} (Benjamini-Hochberg) and
     \code{significant}, sorted by decreasing \code{abs_Z}. Rows containing the
     outgroup are dropped.}
-  \item{\code{sisterAdmixture(z_threshold = 3)}}{significant rows where H1 and
-    H2 are a true sister pair, with a \code{recipient} column (H2 if Z is
-    positive, otherwise H1). Run \code{filter()} first.}
+    \item{\code{sisterAdmixture(z_threshold = 3, level = "cherry", summary = FALSE)}}{significant
+    rows where H1 and H2 sit on a split of the tree. With \code{level = "cherry"}
+    only true sister pairs (clades of two species) are used. With
+    \code{level = "clade"} every tree-congruent pair is used and annotated with
+    its \code{clade}, \code{clade_size}, \code{recipient} (H2 if Z is positive,
+    otherwise H1) and \code{toward_side} (the species on the recipient's branch
+    of the split). With \code{summary = TRUE} the result has one row per clade
+    and H3, giving the number of pairs tested and significant, and whether they
+    all point at the same branch (\code{"mixed"} if not). Run \code{filter()} first.}
   \item{\code{saveResult(file)}}{write \code{result} to a CSV file.}
 }
 Methods that load or filter return the object invisibly, so calls can be chained.

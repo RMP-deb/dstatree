@@ -25,3 +25,25 @@ stopifnot(identical(s$recipient[s$H3 == "D"], "A"))
 stopifnot(inherits(try(DStatFilter$new()$loadTree(tree_file, "nope"), silent = TRUE),
                    "try-error"))
 stopifnot(inherits(try(DStatFilter$new()$filter(), silent = TRUE), "try-error"))
+
+
+# --- clade level and per-split summary ---------------------------------
+tree2  <- tempfile(fileext = ".tre")
+table2 <- tempfile(fileext = ".txt")
+writeLines("(((A,B),C),D,O);", tree2)
+write.table(
+  data.frame(H1 = c("A", "B", "A"), H2 = c("C", "C", "B"),
+             H3 = c("D", "D", "C"), Z = c(-5, -4, 4.2)),
+  table2, sep = "\t", quote = FALSE, row.names = FALSE)
+g <- DStatFilter$new()$loadTree(tree2, "O")$loadTable(table2)$filter()
+
+# cherry level only sees (A,B;C); clade level sees all three congruent rows
+stopifnot(nrow(g$sisterAdmixture()) == 1)
+stopifnot(nrow(g$sisterAdmixture(level = "clade")) == 3)
+
+# clade A,B,C with H3 = D: two pairs tested, both significant,
+# both pointing at the same branch (the A,B side)
+s <- g$sisterAdmixture(level = "clade", summary = TRUE)
+row <- s[s$H3 == "D", ]
+stopifnot(row$n_tests == 2, row$n_significant == 2)
+stopifnot(setequal(strsplit(row$toward_side, ",")[[1]], c("A", "B")))
