@@ -6,6 +6,7 @@ Description: Filters tables of D-statistic (ABBA-BABA) results so that only
     trios consistent with a rooted species tree are kept, using a single
     object that stores the tree and the table. Also reports significant
     signals involving true sister species pairs.
-License: Apache License (== 2.0)
+License: License: GPL (>= 3)
 Encoding: UTF-8
 Imports: ape, methods, stats, utils
+`
