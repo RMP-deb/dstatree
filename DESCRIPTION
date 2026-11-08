@@ -1,7 +1,7 @@
 Package: dstatree
 Title: Tree-Aware Filtering of D-Statistic Tables
-Version: 0.0.1
-Authors@R: person("Your", "Name", email = "you@example.com", role = c("aut", "cre"))
+Version: 0.0.2
+Authors@R: person("Your", "Ruben Muller-Perol", email = "rubenmullerperol@gmail.com", role = c("aut", "cre"))
 Description: Filters tables of D-statistic (ABBA-BABA) results so that only
     trios consistent with a rooted species tree are kept, using a single
     object that stores the tree and the table. Also reports significant
