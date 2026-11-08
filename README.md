@@ -7,11 +7,9 @@ testing, and reports significant signals involving true sister pairs.
 ## Install
 
 ```r
-# install.packages("remotes")
+install.packages("remotes")
 remotes::install_github("RMP-deb/dstatree")
 
-# or from a downloaded source archive
-install.packages("dstatree_0.0.1.tar.gz", repos = NULL, type = "source")
 ```
 
 ## Use
