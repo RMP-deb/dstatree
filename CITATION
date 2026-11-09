@@ -1,0 +1,8 @@
+bibentry(
+  "Manual",
+  title  = "dstatree: Tree-Aware Filtering of D-Statistic Tables",
+  author = person("Ruben", "Muller-Perol"),
+  year   = "2026",
+  note   = paste("R package version", meta$Version),
+  url    = "https://github.com/RMP-deb/dstatree"
+)
