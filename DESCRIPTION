@@ -1,12 +1,16 @@
 Package: dstatree
 Title: Tree-Aware Filtering of D-Statistic Tables
-Version: 0.0.2
+Version: 0.1.0
 Authors@R: person("Your", "Ruben Muller-Perol", email = "rubenmullerperol@gmail.com", role = c("aut", "cre"))
 Description: Filters tables of D-statistic (ABBA-BABA) results so that only
-    trios consistent with a rooted species tree are kept, using a single
-    object that stores the tree and the table. Also reports significant
-    signals involving true sister species pairs.
-License: License: GPL (>= 3)
+    trios consistent with a rooted species tree are kept. Adds p-values with
+    multiple-testing correction, and reports significant signals involving
+    sister species pairs or larger clades. Can be used through plain functions
+    or through a single object that stores the tree and the table.
+License: GPL (>= 3)
+URL: https://github.com/RMP-deb/dstatree
+BugReports: https://github.com/RMP-deb/dstatree/issues
 Encoding: UTF-8
 Imports: ape, methods, stats, utils
-`
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
